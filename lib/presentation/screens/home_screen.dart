@@ -4,8 +4,6 @@ import 'package:mindchain/data/models/query_model.dart';
 import 'package:mindchain/data/models/user_stats.dart';
 import 'package:mindchain/data/providers/user_provider.dart';
 import 'package:mindchain/data/repositories/query_repository.dart';
-import 'package:mindchain/presentation/widgets/user_stat_card.dart';
-import 'package:mindchain/presentation/widgets/user_stats_grid.dart';
 
 final queryListProvider = FutureProvider<List<QueryModel>>((ref) async {
   final queryRepository = ref.watch(queryRepositoryProvider);
@@ -22,19 +20,26 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Welcome, ${userState.username.split(" ").firstOrNull ?? "User"}!",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            // SizedBox(height: 200.0, child: UserStatsGrid()),
-            _buildStatsGrid(userStats),
-            const SizedBox(height: 20),
-            // Expanded(child: _buildQueryList(queryState)),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Welcome, ${userState.username.split(" ").firstOrNull ?? "User"}!",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              // SizedBox(height: 200.0, child: UserStatsGrid()),
+              _buildStatsGrid(userStats),
+              const SizedBox(height: 20),
+              const Text(
+                'Query Analytics',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _buildAnalyticsCard(),
+            ],
+          ),
         ),
       ),
     );
@@ -51,62 +56,78 @@ class HomeScreen extends ConsumerWidget {
             crossAxisCount: columns,
             crossAxisSpacing: 12.0,
             mainAxisSpacing: 12.0,
-            childAspectRatio: 4 / 3,
+            childAspectRatio: 17 / 12,
           ),
           itemCount: userStats.length,
           itemBuilder: (context, index) {
-            return UserStatCard(userStat: userStats[index]);
+            return _buildUserStatusCard(userStats[index], Icons.query_stats);
           },
         );
       },
     );
   }
 
-  Widget _buildStatsCards(UserStats userStats) {
-    return SizedBox(
-      height: 140.0,
-      width: double.maxFinite,
-      child: GridView.count(
-        crossAxisCount: 1,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        childAspectRatio: 0.75,
-        children: [
-          UserStatCard(userStat: userStats.pendingQuery),
-          UserStatCard(userStat: userStats.activeChats),
-          UserStatCard(userStat: userStats.matching),
-          UserStatCard(userStat: userStats.resolved),
-        ],
+  Widget _buildUserStatusCard(UserStat userStat, IconData icon) {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  userStat.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Icon(icon, color: Colors.grey),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              userStat.value.toString(),
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'View all ${userStat.title.toLowerCase()} queries',
+              style: const TextStyle(color: Colors.blue),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildQueryList(AsyncValue<List<QueryModel>> queryState) {
-    return queryState.when(
-      data:
-          (queries) => ListView.builder(
-            itemCount: queries.length,
-            itemBuilder: (context, index) {
-              final query = queries[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 2,
-                child: ListTile(
-                  title: Text(query.title),
-                  subtitle: Text("Status: ${query.status}"),
-                  trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    // Navigate to Query Details
-                  },
-                ),
-              );
-            },
-          ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text("Error: $error")),
+  Widget _buildAnalyticsCard() {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Response Rate',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '50%',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 4),
+            Text('Average response time: 2.5 hours'),
+          ],
+        ),
+      ),
     );
   }
 }
