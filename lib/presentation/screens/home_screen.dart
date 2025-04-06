@@ -4,6 +4,7 @@ import 'package:mindchain/data/models/query_model.dart';
 import 'package:mindchain/data/models/user_stats.dart';
 import 'package:mindchain/data/providers/user_provider.dart';
 import 'package:mindchain/data/repositories/query_repository.dart';
+import 'package:mindchain/presentation/widgets/button.dart';
 
 final queryListProvider = FutureProvider<List<QueryModel>>((ref) async {
   final queryRepository = ref.watch(queryRepositoryProvider);
@@ -11,12 +12,13 @@ final queryListProvider = FutureProvider<List<QueryModel>>((ref) async {
 });
 
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
-
+  HomeScreen({super.key});
+  ColorScheme? colorScheme;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userState = ref.watch(userProvider);
     final userStats = userState.userStats.toList();
+    colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -24,12 +26,21 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Welcome, ${userState.username.split(" ").firstOrNull ?? "User"}!",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Welcome, ${userState.username.split(" ").firstOrNull ?? "User"}!",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  AdaptiveButton(
+                    icon: Icons.add_rounded,
+                    label: "New Query",
+                    onPressed: () {},
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
-              // SizedBox(height: 200.0, child: UserStatsGrid()),
               _buildStatsGrid(userStats),
               const SizedBox(height: 20),
               const Text(
@@ -107,8 +118,20 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildAnalyticsCard() {
-    return Card(
-      elevation: 4,
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: colorScheme?.surface ?? Colors.grey,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey,
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3), // changes position of shadow
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
